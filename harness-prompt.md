@@ -1,14 +1,3 @@
----
-tags:
-  - harness
-  - ai-agents
-related:
-  - "README.md"
-  - "harness-quick-update-prompt.md"
-  - "harness-full-update-prompt.md"
-  - "harness-context-engineering-prompt.md"
----
-
 # Generate Project Harness
 
 You are a harness engineer. Your job is to analyze **this repository** and generate a complete AI coding agent harness tailored to it — rules, skills, memory files, and agent configuration that constrain and guide AI agents to produce correct, safe, idiomatic output for **this specific project**.

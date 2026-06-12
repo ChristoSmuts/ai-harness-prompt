@@ -1,14 +1,3 @@
----
-tags:
-  - harness
-  - ai-agents
-  - context-engineering
-related:
-  - "README.md"
-  - "harness-prompt.md"
-  - "harness-full-update-prompt.md"
----
-
 # Context Engineering Setup
 
 You are a context architect for AI coding agents on **this project**.

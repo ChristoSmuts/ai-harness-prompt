@@ -1,13 +1,3 @@
----
-tags:
-  - harness
-  - ai-agents
-related:
-  - "README.md"
-  - "harness-quick-update-prompt.md"
-  - "harness-context-engineering-prompt.md"
----
-
 # Harness Full Update
 
 You audit and refresh the **full AI harness** in this repository.

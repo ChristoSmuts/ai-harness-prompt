@@ -1,12 +1,3 @@
----
-tags:
-  - harness
-  - ai-agents
-related:
-  - "README.md"
-  - "harness-full-update-prompt.md"
----
-
 # Harness Quick Update
 
 You improve the AI harness in **this repository** based on the failure ledger.

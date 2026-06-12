@@ -1,14 +1,3 @@
----
-tags:
-  - harness
-  - ai-agents
-related:
-  - "harness-prompt.md"
-  - "harness-quick-update-prompt.md"
-  - "harness-full-update-prompt.md"
-  - "harness-context-engineering-prompt.md"
----
-
 # AI Harness Prompts — How to Use This
 
 > **What is this?** A set of copy-paste prompts that teach your AI coding assistant how to work on *your* project — like giving a new teammate a briefing pack on day one.
@@ -134,6 +123,47 @@ After running **[Harness Prompt](harness-prompt.md)**, your repo gets new instru
 
 ---
 
+## Context engineering and suggested tools
+
+**Context engineering** is how you organize what your AI sees — rules, docs, memory, and tool output — so it loads the right information at the right time without overflowing the context window. That matters most for **local or smaller models** (Ollama, LM Studio, Continue) that forget between sessions and have tighter token limits.
+
+Use **[Harness Context Engineering Prompt](harness-context-engineering-prompt.md)** to design a tiered context layer for your project (L0 cheat sheet → L1 task context → L2 detail on demand). The prompt writes docs under `docs/context/` and updates your harness — it does **not** install tools for you.
+
+For step-by-step local installation (Docker and non-Docker), see **[Context Tool Install](context-tool-install.md)**.
+
+### Suggested tools (optional)
+
+These run **locally** on your machine. Pick one, several, or none — the harness works without them.
+
+| Tool | What it does | Best when |
+|------|----------------|-----------|
+| **[Graphify](https://github.com/safishamsi/graphify)** | Builds a queryable knowledge graph from your codebase, docs, PDFs, and more. Code is parsed on-device; you query the graph instead of grepping everything. | Large repos, lots of docs, or you want persistent “how does this connect?” navigation without re-reading files every session. |
+| **[OpenViking](https://github.com/volcengine/OpenViking)** | Context database with a filesystem-style layout (`viking://resources/`, `viking://user/memories/`, `viking://agent/skills/`). Supports L0/L1/L2 tiered loading and semantic search. | You want unified memory + resources + skills, hierarchical browsing, and session memory that evolves over time. |
+| **[Headroom](https://github.com/chopratejas/headroom)** | Compresses bulky context (tool outputs, logs, RAG chunks, file dumps) before it reaches the LLM — often 60–95% token savings, reversible. | Tool-heavy workflows, long logs, or local models where every token counts. |
+
+### How they fit together
+
+```
+Your project files + harness docs (AGENTS.md, skills, rules)
+              |
+              v
+    +---------+---------+---------+
+    | Graphify | OpenViking | Headroom |
+    | (graph)  | (context DB)| (compress)|
+    +---------+---------+---------+
+              |
+              v
+         Your AI agent (Cursor, Copilot, Claude Code, Ollama, etc.)
+```
+
+- **Graphify** — “What relates to what?” (structure and relationships).
+- **OpenViking** — “Where is memory stored and how do I load it in tiers?” (organized context store).
+- **Headroom** — “This output is huge — shrink it before the model sees it.” (compression layer).
+
+You can use Graphify for navigation, OpenViking for memory, and Headroom on large tool outputs in the same project. Start with one tool that matches your biggest pain (repeated grepping → Graphify; scattered memory → OpenViking; token overflow → Headroom).
+
+---
+
 ## Glossary
 
 | Term | Simple meaning |
@@ -145,6 +175,8 @@ After running **[Harness Prompt](harness-prompt.md)**, your repo gets new instru
 | **Model tier** | **Frontier** = powerful cloud models (GPT-4, Claude). **Lightweight** = smaller or free local models |
 | **Token budget** | How much text the AI loads every session — smaller models need a thinner harness |
 | **MCP** | A way for AI tools to connect to external services — the harness includes safety rules for these |
+| **Context engineering** | Designing how context is stored, loaded in tiers, and refreshed so agents stay within token limits |
+| **L0 / L1 / L2** | Context tiers: L0 = minimal cheat sheet, L1 = task-relevant summary, L2 = full detail on demand |
 
 ---
 
@@ -186,3 +218,4 @@ Optional. Recommended if you use a local or free model that forgets context betw
 - [Harness Quick Update Prompt](harness-quick-update-prompt.md) — fix repeating mistakes
 - [Harness Full Update Prompt](harness-full-update-prompt.md) — full refresh
 - [Harness Context Engineering Prompt](harness-context-engineering-prompt.md) — memory and context layer
+- [Context Tool Install](context-tool-install.md) — local install guide for Graphify, OpenViking, and Headroom
