@@ -103,11 +103,24 @@ uv tool install "graphifyy[ollama]"   # fully local semantic extraction
 uv tool install "graphifyy[all]"      # everything
 ```
 
-**5. Keep the graph in sync (optional)**
+**5. Keeping context in sync**
+
+Graphify serves a **cached graph** (`graphify-out/graph.json`). Queries read the cache, not live files — refresh after the codebase changes.
+
+| Method | When to use | Command |
+|--------|-------------|---------|
+| Incremental update | Day-to-day after edits | `graphify update` |
+| Full rebuild | Major refactor or corrupted graph | `graphify extract .` |
+| Git hooks | Automatic on commit / branch switch | `graphify hook install` |
+| Live watch | Active development session | `graphify watch .` |
 
 ```bash
-graphify hook install    # rebuild on git commit / branch switch
+graphify update              # preferred — only changed files since last run
+graphify hook install        # rebuild on git commit / branch switch
+graphify watch .             # optional — continuous sync while editing
 ```
+
+Your harness `TOOL_ROUTING.md` should tell the agent to run `graphify update` when query results look stale after recent edits.
 
 ### Docker install (MCP server mode)
 
@@ -299,6 +312,48 @@ docker compose up -d
 - Health: `curl http://localhost:1933/health`
 
 **Note:** If you use **Ollama on the host** while OpenViking runs in Docker, point `api_base` in `ov.conf` at the host gateway (e.g. `http://host.docker.internal:11434` on Docker Desktop, or your LAN IP on Linux).
+
+### Keeping context in sync
+
+OpenViking has **two update paths** — resources (code/docs you ingest) and memory (extracted from agent sessions). They do not auto-sync with git.
+
+**Resources** (`viking://resources/`) — re-ingest when source files change:
+
+```bash
+# Python SDK example — re-add project root after significant changes
+python -c "
+import openviking as ov
+client = ov.SyncHTTPClient(url='http://localhost:1933', api_key='your-key')
+client.initialize()
+client.add_resource('.')   # or path to docs subtree
+client.close()
+"
+
+# Or via API
+curl -X POST http://localhost:1933/api/v1/resources \
+  -H "X-API-Key: your-key" \
+  -H "Content-Type: application/json" \
+  -d '{"path": "/path/to/your/project"}'
+```
+
+Ingestion is **asynchronous** — check status via API before assuming search results are current. Consider re-ingesting after merge to main or on a schedule you document in `docs/context/TOOL_ROUTING.md`.
+
+**Memory** (`viking://user/`, `viking://agent/`) — evolves from sessions, not from file edits:
+
+```python
+session = client.session()
+session.add(role="user", content="...")
+session.add(role="assistant", content="...")
+session.commit()   # extracts long-term memory automatically
+```
+
+Use `session.commit()` at session end for preferences and task experience. Pair with harness `SESSION_HANDOFF.md` when Graphify handles code navigation separately.
+
+| What changed | Action |
+|--------------|--------|
+| Source code / docs on disk | Re-ingest resource |
+| Agent learned a preference | `session.commit()` |
+| Both Graphify + OpenViking | `graphify update` for graph; re-ingest for OpenViking resources |
 
 ### Verify OpenViking
 

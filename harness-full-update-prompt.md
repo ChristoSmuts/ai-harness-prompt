@@ -57,6 +57,19 @@ Re-scan the repository. Compare against harness claims.
 - `.cursor/mcp.json`, project MCP config
 - `docs/context/CONTEXT_MANIFEST.md` if Context Engineering was run
 
+**Context tool availability** (when `docs/context/` exists — same checks as **Harness Context Engineering Phase 1.5**):
+
+| Tool | Detect |
+|------|--------|
+| Graphify | `graphify --version` OR `graphify-out/graph.json` OR `.agents/skills/graphify/SKILL.md` |
+| OpenViking | `openviking-server doctor` passes OR `curl` health on configured port OR `~/.openviking/ov.conf` + server responds |
+
+Compare manifest `tools_available` and `last_tool_check` vs current detection. Flag **tool drift** in Drift Report:
+
+- Tool newly available → refresh `TOOL_ROUTING.md`, create missing skills, update manifest
+- Tool no longer available → prune `.agents/skills/graphify/` or `.agents/skills/openviking/` and mirrors; update `TOOL_ROUTING.md` mode; move tool to `tools_pending` in manifest
+- `tools_pending` unchanged → no skill changes for that tool
+
 Present findings as a **Drift Report** before the full Update Plan.
 
 ---
@@ -142,9 +155,14 @@ Wait for user approval unless they said "apply without asking."
 **On apply:**
 1. Update harness files for all selected agents
 2. Write skills to `.agents/skills/` first, then mirror to agent-native dirs
-3. Append `docs/harness/HARNESS_CHANGELOG.md`
-4. Update `docs/harness/HARNESS.md` — `last_updated` date, model tier, agent list
-5. Resolve applicable `failure-ledger.json` entries if fixes address them
+3. **Context tool refresh** (if `docs/context/` exists and tool drift was flagged):
+   - Update `CONTEXT_MANIFEST.md` — `tools_available`, `tools_pending`, `last_tool_check`
+   - Refresh `TOOL_ROUTING.md` for current mode (both / graphify-only / openviking-only / harness-only)
+   - Regenerate conditional skills per **Harness Context Engineering Phase 4** (create, update, or prune `graphify` / `openviking` skills)
+   - Update `context-engineering/SKILL.md` branching block to match `tools_available`
+4. Append `docs/harness/HARNESS_CHANGELOG.md`
+5. Update `docs/harness/HARNESS.md` — `last_updated` date, model tier, agent list
+6. Resolve applicable `failure-ledger.json` entries if fixes address them
 
 Do not commit unless the user asks.
 
